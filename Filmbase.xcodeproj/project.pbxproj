@@ -16,6 +16,7 @@
 		3BFC0D972B290DBB00FB4354 /* FilmbaseTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3BFC0D962B290DBB00FB4354 /* FilmbaseTests.swift */; };
 		3BFC0DA12B290DBB00FB4354 /* FilmbaseUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3BFC0DA02B290DBB00FB4354 /* FilmbaseUITests.swift */; };
 		3BFC0DA32B290DBB00FB4354 /* FilmbaseUITestsLaunchTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3BFC0DA22B290DBB00FB4354 /* FilmbaseUITestsLaunchTests.swift */; };
+		3BFC0DB22B290F5800FB4354 /* App in Frameworks */ = {isa = PBXBuildFile; productRef = 3BFC0DB12B290F5800FB4354 /* App */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -49,6 +50,7 @@
 		3BFC0D9C2B290DBB00FB4354 /* FilmbaseUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = FilmbaseUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		3BFC0DA02B290DBB00FB4354 /* FilmbaseUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FilmbaseUITests.swift; sourceTree = "<group>"; };
 		3BFC0DA22B290DBB00FB4354 /* FilmbaseUITestsLaunchTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FilmbaseUITestsLaunchTests.swift; sourceTree = "<group>"; };
+		3BFC0DAF2B290F1700FB4354 /* App */ = {isa = PBXFileReference; lastKnownFileType = wrapper; path = App; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -56,6 +58,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				3BFC0DB22B290F5800FB4354 /* App in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -79,10 +82,12 @@
 		3BFC0D732B290DB900FB4354 = {
 			isa = PBXGroup;
 			children = (
+				3BFC0DAF2B290F1700FB4354 /* App */,
 				3BFC0D7E2B290DB900FB4354 /* Filmbase */,
 				3BFC0D952B290DBB00FB4354 /* FilmbaseTests */,
 				3BFC0D9F2B290DBB00FB4354 /* FilmbaseUITests */,
 				3BFC0D7D2B290DB900FB4354 /* Products */,
+				3BFC0DB02B290F5800FB4354 /* Frameworks */,
 			);
 			sourceTree = "<group>";
 		};
@@ -127,6 +132,13 @@
 			path = FilmbaseUITests;
 			sourceTree = "<group>";
 		};
+		3BFC0DB02B290F5800FB4354 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -143,6 +155,9 @@
 			dependencies = (
 			);
 			name = Filmbase;
+			packageProductDependencies = (
+				3BFC0DB12B290F5800FB4354 /* App */,
+			);
 			productName = Filmbase;
 			productReference = 3BFC0D7C2B290DB900FB4354 /* Filmbase.app */;
 			productType = "com.apple.product-type.application";
@@ -450,6 +465,7 @@
 				INFOPLIST_KEY_UIMainStoryboardFile = Main;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -478,6 +494,7 @@
 				INFOPLIST_KEY_UIMainStoryboardFile = Main;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -607,6 +624,13 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		3BFC0DB12B290F5800FB4354 /* App */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = App;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 3BFC0D742B290DB900FB4354 /* Project object */;
 }
