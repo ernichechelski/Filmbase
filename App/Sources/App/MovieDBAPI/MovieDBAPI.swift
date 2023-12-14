@@ -7,24 +7,16 @@
 
 import Foundation
 import Combine
+import UIKit
 
-public protocol MoviesRepository {
-    func firstTitle() -> AnyPublisher<String, Error>
-}
-
-public struct MovieDBMoviesRepository: MoviesRepository {
-    public func firstTitle() -> AnyPublisher<String, Error> {
-        RequestBuilderFactory
-         .create(Movies.GetMovies.self)
-         .request(.init())
-         .headers(.init(authorisation: "Authorization: Bearer \(Constants.apiKey)" ))
-         .queryItems(.init(page: 1, language: "pl"))
-         .perform(with: URLSession.shared)
-         .map { $0.data.results.first?.originalTitle ?? "XD" }
-         .eraseToAnyPublisher()
-    }
-    
-    public init() {}
+struct Movie {
+    let id: Int
+    let title: String
+    let image: UIImage
+    let releseDate: Date
+    let grade: Float
+    let overview: String
+    let isFavourite: Bool
 }
 
 protocol MoviesRequest {
@@ -42,7 +34,6 @@ extension MoviesRequest where Self: PerformerRequest {
 
 enum Movies {
     struct GetMovies: RequestPerformerType {
-        /// https://api.themoviedb.org/3/movie/now_playing?language=en-US&page=1
         struct Request: PerformerRequest, MoviesRequest {
             var subpath: String? {
                 "/3/movie/now_playing"
@@ -88,7 +79,7 @@ enum Movies {
                 // MARK: - Result
                 struct Movie: Codable {
                     let adult: Bool
-                    let backdropPath: String
+                    let backdropPath: String?
                     let genreIDS: [Int]
                     let id: Int
                     let originalLanguage: String
@@ -118,4 +109,3 @@ enum Movies {
         }
     }
 }
-
