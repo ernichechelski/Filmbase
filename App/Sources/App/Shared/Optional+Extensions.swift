@@ -8,12 +8,12 @@
 import Foundation
 
 extension Optional {
-    /// Throws error if no data required
-    func throwing(error: Error = PackageError.development()) throws -> Wrapped {
-        if let wrapped = self {
-            return wrapped
-        } else {
-            throw error
-        }
+  /// Throws error if no data required
+  func throwing(error: Error = PackageError.development()) throws -> Wrapped {
+    if let wrapped = self {
+      return wrapped
+    } else {
+      throw error
     }
+  }
 }

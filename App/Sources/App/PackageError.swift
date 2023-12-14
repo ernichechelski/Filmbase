@@ -11,7 +11,6 @@ enum PackageConstants {
 
 public enum PackageError: LocalizedError {
     case development(file: String = #file, line: UInt = #line)
-    case dependencyInjection(type: Any.Type)
     case arc
     case noData
     case operationCanceled
@@ -27,7 +26,6 @@ public enum PackageError: LocalizedError {
             }
         case .noData: return "Required data not found"
         case .operationCanceled: return "Operation canceled"
-        case let .dependencyInjection(type): return "App could not load required component \(type)"
         }
     }
 
