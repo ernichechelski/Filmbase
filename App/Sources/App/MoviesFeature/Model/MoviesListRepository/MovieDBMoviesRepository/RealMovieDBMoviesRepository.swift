@@ -8,6 +8,7 @@
 import Combine
 import Foundation
 import UIKit
+import ApiClient
 
 struct RealMovieDBMoviesRepository: MovieDBMoviesRepository {
     func fetchMovies() -> AnyPublisher<Movies.GetMovies.Response.Body, Error> {

@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import ApiClient
 
 enum Movies {
   struct GetMovies: RequestPerformerType {

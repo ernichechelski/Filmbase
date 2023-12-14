@@ -4,30 +4,23 @@
 import PackageDescription
 
 let package = Package(
-    name: "App",
+    name: "ApiClient",
     platforms: [
         .iOS(.v13)
     ],
     products: [
         // Products define the executables and libraries a package produces, making them visible to other packages.
         .library(
-            name: "App",
-            targets: ["App"]),
-    ],
-    dependencies: [
-      .package(path: "../ApiClient")
+            name: "ApiClient",
+            targets: ["ApiClient"]),
     ],
     targets: [
         // Targets are the basic building blocks of a package, defining a module or a test suite.
         // Targets can depend on other targets in this package and products from dependencies.
         .target(
-            name: "App",
-            dependencies: [
-              .product(name: "ApiClient", package: "ApiClient")
-            ]
-        ),
+            name: "ApiClient"),
         .testTarget(
-            name: "AppTests",
-            dependencies: ["App"]),
+            name: "ApiClientTests",
+            dependencies: ["ApiClient"]),
     ]
 )

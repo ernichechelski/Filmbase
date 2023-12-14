@@ -7,7 +7,7 @@
 
 import Foundation
 
-extension Optional {
+public extension Optional {
   /// Throws error if no data required
   func throwing(error: Error = PackageError.development()) throws -> Wrapped {
     if let wrapped = self {

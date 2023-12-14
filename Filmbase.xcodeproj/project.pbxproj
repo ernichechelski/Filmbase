@@ -35,6 +35,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		3B24A1602B2BBB9400123342 /* ApiClient */ = {isa = PBXFileReference; lastKnownFileType = wrapper; path = ApiClient; sourceTree = "<group>"; };
 		3BFC0D7C2B290DB900FB4354 /* Filmbase.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Filmbase.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		3BFC0D7F2B290DB900FB4354 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		3BFC0D812B290DB900FB4354 /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
@@ -78,6 +79,7 @@
 		3BFC0D732B290DB900FB4354 = {
 			isa = PBXGroup;
 			children = (
+				3B24A1602B2BBB9400123342 /* ApiClient */,
 				3BFC0DAF2B290F1700FB4354 /* App */,
 				3BFC0D7E2B290DB900FB4354 /* Filmbase */,
 				3BFC0D952B290DBB00FB4354 /* FilmbaseTests */,
