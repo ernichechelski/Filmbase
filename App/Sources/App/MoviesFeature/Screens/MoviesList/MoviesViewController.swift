@@ -119,10 +119,10 @@ extension MoviesViewController: UISearchResultsUpdating {
   
   @available(iOS 16.0, *)
   func updateSearchResults(for searchController: UISearchController, selecting searchSuggestion: UISearchSuggestion) {
-    searchController.searchSuggestions?.removeAll()
     searchController.searchBar.text = searchSuggestion.localizedSuggestion
+    searchController.searchSuggestions?.removeAll()
     searchController.dismiss(animated: true)
-    presenter.updateQuery(text: searchSuggestion.localizedSuggestion)
+//    presenter.updateQuery(text: searchSuggestion.localizedSuggestion)
   }
 }
 

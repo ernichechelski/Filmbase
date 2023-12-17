@@ -62,7 +62,7 @@ final class MoviesPresenter {
         self?.modelSubject.send(
           .init(
             movies: movies.uniqued,
-            searchSuggestions: []
+            searchSuggestions: self?.modelSubject.value?.searchSuggestions ?? []
           )
         )
       }
@@ -118,11 +118,7 @@ final class MoviesPresenter {
 
   private func setup() {
     querySubject
-      .filter { text in
-        text.count > 2
-      }
       .removeDuplicates()
-      .throttle(for: 2.0, scheduler: RunLoop.main, latest: true)
       .sink { [weak self] query in
         self?.fetchSuggestions(query: query)
       }
@@ -143,6 +139,11 @@ final class MoviesPresenter {
       }
       return
     }
+    
+    guard query.count > 2 else{
+      return
+    }
+    
     moviesRepository
       .fetchSearchSuggestions(text: query)
       .replaceError(with: [])
@@ -156,8 +157,16 @@ final class MoviesPresenter {
         }
       )
       .sink(receiveValue: { [weak self] suggestions in
-        self?.modelSubject.update {
-          $0?.searchSuggestions = suggestions.map(\.text)
+        self?.modelSubject.update { model in
+          let movies = model?.movies ?? []
+          let suggestions = suggestions.map(\.text)
+          let validSuggestions = suggestions.filter({ text in
+            movies.contains(where: { movie in
+              text.contains(movie.value.title)
+            })
+          })
+          let uniquedSuggestions = Array(Set(validSuggestions))
+          model?.searchSuggestions = uniquedSuggestions
         }
       })
       .store(in: &cancellables)
