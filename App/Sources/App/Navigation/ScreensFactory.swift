@@ -21,9 +21,8 @@ final class ScreensFactory {
   }
   
   func createMovieDetails(movie: Movie) -> ViewControllerRoutes {
-    let vc = MovieDetailsViewController()
-    vc.view.backgroundColor = .systemBackground
-    vc.fill(with: .init(titleText: movie.title, releaseDateText: "\(movie.releseDate)", gradeText: "\(movie.grade)", descriptionText: movie.overview))
+    let presenter = MovieDetailsPresenter(movie: movie, moviesRepository: moviesRepository)
+    let vc = MovieDetailsViewController(presenter: presenter)
     return vc
   }
 }

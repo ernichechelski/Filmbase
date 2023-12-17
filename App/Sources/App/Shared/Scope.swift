@@ -21,3 +21,9 @@ import Foundation
   block()
   return target
 }
+
+@inline(__always) func mutate<T>(_ target: T, block: (inout T) -> Void) -> T {
+  var target = target
+  block(&target)
+  return target
+}

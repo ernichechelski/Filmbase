@@ -18,24 +18,26 @@ final class MoviesPresenter {
 
   private var cancellables = Set<AnyCancellable>()
   private var modelSubject = CurrentValueSubject<MoviesListModel?, Never>(.none)
+  private let moviesRepository: MoviesListRepository
   
   init(moviesRepository: MoviesListRepository) {
     self.moviesRepository = moviesRepository
   }
   
-  private let moviesRepository: MoviesListRepository
-
   func load(isPullToRefresh: Bool = false) {
-    modelSubject.send(.init(isLoading: !isPullToRefresh, movies: modelSubject.value?.movies ?? [], onEvent: { _ in }))
+    modelSubject.update {
+      $0?.isLoading = !isPullToRefresh
+    }
     cancellables.removeAll()
     moviesRepository
       .fetchMovies()
       .receive(on: RunLoop.main)
       .sink { completion in
         print(completion)
-      } receiveValue: { movies in
-        print("Refreshed movies: \(movies)")
-        self.modelSubject.send(.init(movies: movies, onEvent: { _ in }))
+      } receiveValue: { [weak self] movies in
+        self?.modelSubject.send(
+          .init(movies: movies)
+        )
       }
       .store(in: &cancellables)
   }

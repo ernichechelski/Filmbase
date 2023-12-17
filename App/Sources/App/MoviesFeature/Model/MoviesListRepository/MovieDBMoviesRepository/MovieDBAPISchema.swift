@@ -92,6 +92,11 @@ protocol MoviesRequest {
 }
 
 extension MoviesRequest where Self: PerformerRequest {
-  var basePath: String { "https://api.themoviedb.org" }
+  var basePath: String { MoviesDBConstants.baseApiPath }
   var path: String? { basePath + (subpath ?? "") }
+}
+
+enum MoviesDBConstants {
+  static let baseApiPath = "https://api.themoviedb.org"
+  static let basePostersPath = "https://image.tmdb.org/t/p/original"
 }

@@ -40,7 +40,7 @@ final class MoviesViewController: UIViewController, ViewControllerRoutes {
     refreshControl.addTarget(self, action: #selector(refresh(_:)), for: .valueChanged)
     rootTableView.dataSource = self
     rootTableView.delegate = self
-    rootTableView.register(UITableViewCell.self, forCellReuseIdentifier: "identifier")
+    rootTableView.register(MovieCell.self, forCellReuseIdentifier: "identifier")
 
     view.addSubview(rootTableView)
     view.addSubview(activityIndicatorView)
@@ -97,15 +97,26 @@ extension MoviesViewController: UITableViewDataSource {
   }
 
   public func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-    let cell = tableView.dequeueReusableCell(withIdentifier: "identifier")
+    let cell = tableView.dequeueReusableCell(withIdentifier: "identifier") as? MovieCell
     if let movie = model?.movies[indexPath.row] {
-      cell?.textLabel?.text = movie.title
-      cell?.accessoryType = .disclosureIndicator
-      if movie.isFavourite {
-        cell?.textLabel?.textColor = .red
-      } else {
-        cell?.textLabel?.textColor = .black
-      }
+      cell?.fill(
+        with: .init(
+          title: movie.title,
+          isFavourite: movie.isFavourite,
+          onEvent: { [weak self] event in
+            switch event {
+            case .onToggleFavouriteButton:
+              if movie.isFavourite {
+                self?.presenter.unmarkAsFavourite(movie: movie)
+              } else {
+                self?.presenter.markAsFavourite(movie: movie)
+              }
+            case .checkMovieButtonTapped:
+              self?.presenter.movieSelected(movie: movie)
+            }
+          }
+        )
+      )
     }
     return cell!
   }
@@ -116,12 +127,7 @@ extension MoviesViewController: UITableViewDelegate {
     guard let movie = model?.movies[indexPath.row] else {
       return
     }
-    if movie.isFavourite {
-      presenter.unmarkAsFavourite(movie: movie)
-      presenter.movieSelected(movie: movie)
-    } else {
-      presenter.markAsFavourite(movie: movie)
-    }
+    presenter.movieSelected(movie: movie)
   }
 }
 

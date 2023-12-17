@@ -9,4 +9,5 @@ import Combine
 
 protocol MovieDBMoviesRepository {
   func fetchMovies() -> AnyPublisher<Movies.GetMovies.Response.Body, Error>
+  func fetchImage(path: String) -> ImageResource
 }

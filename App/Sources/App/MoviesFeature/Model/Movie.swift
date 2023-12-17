@@ -10,7 +10,7 @@ import UIKit
 struct Movie {
   let id: Int
   let title: String
-  let image: UIImage
+  let image: ImageResource
   let releseDate: Date
   let grade: Float
   let overview: String
