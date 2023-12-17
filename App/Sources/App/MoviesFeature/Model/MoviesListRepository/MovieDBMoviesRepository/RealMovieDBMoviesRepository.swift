@@ -15,7 +15,6 @@ struct MovieDBMoviesImageResource: ImageResource {
 }
 
 struct RealMovieDBMoviesRepository: MovieDBMoviesRepository {
-  
   private let dispatchQueue = DispatchQueue(label: "RealMovieDBMoviesRepository")
   
   func fetchImage(path: String) -> ImageResource {
@@ -39,13 +38,28 @@ struct RealMovieDBMoviesRepository: MovieDBMoviesRepository {
         .eraseToAnyPublisher()
     )
   }
+  
+  func fetchSearchSuggestions(text: String) -> AnyPublisher<[MovieSearchSuggestion], Error> {
+    RequestBuilderFactory
+      .create(Movies.GetMovieSearchSuggestionsMovies.self)
+      .request(.init())
+      .headers(.init(authorisation: "Authorization: Bearer \(Constants.apiKey)"))
+      .queryItems(.init(query: text, page: 1, language: "pl"))
+      .perform(with: URLSession.shared)
+      .map {
+        $0.data.results.map {
+          .init(text: $0.title)
+        }
+      }
+      .eraseToAnyPublisher()
+  }
 
-  func fetchMovies() -> AnyPublisher<Movies.GetMovies.Response.Body, Error> {
+  func fetchMovies(page: Int) -> AnyPublisher<Movies.GetMovies.Response.Body, Error> {
     RequestBuilderFactory
       .create(Movies.GetMovies.self)
       .request(.init())
       .headers(.init(authorisation: "Authorization: Bearer \(Constants.apiKey)"))
-      .queryItems(.init(page: 1, language: "pl"))
+      .queryItems(.init(page: page, language: "pl"))
       .perform(with: URLSession.shared)
       .map { $0.data }
       .eraseToAnyPublisher()

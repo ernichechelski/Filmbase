@@ -9,5 +9,20 @@ import Foundation
 
 struct MoviesListModel {
   var isLoading = false
-  var movies: [Movie]
+  var movies: [Identifable<Movie>]
+  var searchSuggestions: [String]
+}
+
+
+struct Identifable<Value>: Hashable {
+  static func == (lhs: Identifable<Value>, rhs: Identifable<Value>) -> Bool {
+    lhs.uuid == rhs.uuid
+  }
+  
+  var value: Value
+  var uuid: UUID
+  
+  func hash(into hasher: inout Hasher) {
+    hasher.combine(uuid)
+  }
 }

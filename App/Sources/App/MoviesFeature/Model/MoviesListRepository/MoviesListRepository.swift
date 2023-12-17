@@ -7,8 +7,10 @@
 
 import Combine
 
+
 protocol MoviesListRepository {
-  func fetchMovies() -> AnyPublisher<[Movie], Error>
+  func fetchSearchSuggestions(text: String) -> AnyPublisher<[MovieSearchSuggestion], Error>
+  func fetchMovies(page: Int) -> AnyPublisher<[Movie], Error>
   func markAsFavourite(movie: Movie) -> AnyPublisher<Void, Error>
   func unmarkAsFavourite(movie: Movie) -> AnyPublisher<Void, Error>
 }

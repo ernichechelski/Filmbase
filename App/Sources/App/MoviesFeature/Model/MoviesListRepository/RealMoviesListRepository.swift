@@ -13,24 +13,28 @@ final class RealMoviesListRepository: MoviesListRepository {
     case wrongDateFormat
   }
   
-  var model: AnyPublisher<Movies.GetMovies.Response.Body, Never> {
-    modelSubject.share().compactMap { $0 }.eraseToAnyPublisher()
-  }
-
-  private let modelSubject = CurrentValueSubject<Movies.GetMovies.Response.Body?, Never>(.none)
+//  private let modelSubject = CurrentValueSubject<Movies.GetMovies.Response.Body?, Never>(.none)
+  
+  private let modelSubject = CurrentValueSubject<Dictionary<Int, Movies.GetMovies.Response.Body>, Never>([:])
   private let moviesRepository: MovieDBMoviesRepository = RealMovieDBMoviesRepository()
   private let favouiritesRepository: FavouiritesRepository = UserDefaultsFavouiritesRepository()
   
-  func fetchMovies() -> AnyPublisher<[Movie], Error> {
+  func fetchMovies(page: Int) -> AnyPublisher<[Movie], Error> {
     moviesRepository
-      .fetchMovies()
-      .map {
-        self.modelSubject.send($0)
+      .fetchMovies(page: page)
+      .map { response in
+        self.modelSubject.update {
+          $0[page] = response
+        }
       }
       .flatMap { _ in
-        self.fetchFromCache()
+        self.fetchFromCache(page: page)
       }
       .eraseToAnyPublisher()
+  }
+  
+  func fetchSearchSuggestions(text: String) -> AnyPublisher<[MovieSearchSuggestion], Error> {
+    moviesRepository.fetchSearchSuggestions(text: text)
   }
 
   func markAsFavourite(movie: Movie) -> AnyPublisher<Void, Error> {
@@ -41,8 +45,8 @@ final class RealMoviesListRepository: MoviesListRepository {
     favouiritesRepository.remove(favouiriteID: movie.id)
   }
   
-  private func fetchFromCache() -> AnyPublisher<[Movie], Error> {
-    model
+  private func fetchFromCache(page: Int) -> AnyPublisher<[Movie], Error> {
+    modelSubject.compactMap { $0[page] }.eraseToAnyPublisher()
       .setFailureType(to: Error.self)
       .combineLatest(favouiritesRepository.fetchIDs())
       .tryMap { movies, favouiritesIds in

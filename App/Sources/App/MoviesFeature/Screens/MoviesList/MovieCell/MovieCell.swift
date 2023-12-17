@@ -63,6 +63,10 @@ final class MovieCell: UITableViewCell {
   required init?(coder aDecoder: NSCoder) {
     fatalError("init(coder:) has not been implemented")
   }
+  
+  override func prepareForReuse() {
+    fill(with: .init(title: "", isFavourite: false, onEvent: { _ in }))
+  }
 
   // MARK: - Methods [private]
 

@@ -16,3 +16,7 @@ struct Movie {
   let overview: String
   let isFavourite: Bool
 }
+
+struct MovieSearchSuggestion {
+  let text: String
+}
