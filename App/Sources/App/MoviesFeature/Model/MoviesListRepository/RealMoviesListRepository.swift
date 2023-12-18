@@ -15,8 +15,16 @@ final class RealMoviesListRepository: MoviesListRepository {
   }
   
   private let modelSubject = CurrentValueSubject<Dictionary<Int, Movies.GetMovies.Response.Body>, Never>([:])
-  private let moviesRepository: MovieDBMoviesRepository = RealMovieDBMoviesRepository()
-  private let favouiritesRepository: FavouiritesRepository = UserDefaultsFavouiritesRepository()
+  private let moviesRepository: MovieDBMoviesRepository
+  private let favouiritesRepository: FavouiritesRepository
+  
+  init(
+    moviesRepository: MovieDBMoviesRepository,
+    favouiritesRepository: FavouiritesRepository
+  ) {
+    self.moviesRepository = moviesRepository
+    self.favouiritesRepository = favouiritesRepository
+  }
   
   func fetchMovies(page: Int) -> AnyPublisher<[Movie], Error> {
     moviesRepository

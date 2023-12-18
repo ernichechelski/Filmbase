@@ -11,7 +11,10 @@ enum MoviesListEvent {
 
 final class ScreensFactory {
   
-  private let moviesRepository: MoviesListRepository = RealMoviesListRepository()
+  private let moviesRepository: MoviesListRepository = RealMoviesListRepository(
+    moviesRepository: RealMovieDBMoviesRepository(),
+    favouiritesRepository: UserDefaultsFavouiritesRepository()
+  )
   
   func createMoviesList(onEvent: @escaping (MoviesListEvent) -> Void) -> ViewControllerRoutes {
     let presenter = MoviesPresenter(
