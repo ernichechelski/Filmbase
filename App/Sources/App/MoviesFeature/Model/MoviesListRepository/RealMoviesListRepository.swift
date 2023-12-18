@@ -13,8 +13,6 @@ final class RealMoviesListRepository: MoviesListRepository {
     case wrongDateFormat
   }
   
-//  private let modelSubject = CurrentValueSubject<Movies.GetMovies.Response.Body?, Never>(.none)
-  
   private let modelSubject = CurrentValueSubject<Dictionary<Int, Movies.GetMovies.Response.Body>, Never>([:])
   private let moviesRepository: MovieDBMoviesRepository = RealMovieDBMoviesRepository()
   private let favouiritesRepository: FavouiritesRepository = UserDefaultsFavouiritesRepository()
@@ -54,7 +52,7 @@ final class RealMoviesListRepository: MoviesListRepository {
           Movie(
             id: $0.id,
             title: $0.originalTitle,
-            image: self.moviesRepository.fetchImage(path: $0.posterPath),
+            image: self.moviesRepository.fetchImage(path: $0.posterPath ?? $0.backdropPath ?? ""),
             releseDate: try Constants.moviesDBDateFormatter.date(
               from: $0.releaseDate
             ).throwing(error: Failure.wrongDateFormat),

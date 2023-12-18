@@ -48,7 +48,7 @@ struct RealMovieDBMoviesRepository: MovieDBMoviesRepository {
       .perform(with: URLSession.shared)
       .map {
         $0.data.results.map {
-          .init(text: $0.title)
+          .init(text: $0.originalTitle)
         }
       }
       .eraseToAnyPublisher()

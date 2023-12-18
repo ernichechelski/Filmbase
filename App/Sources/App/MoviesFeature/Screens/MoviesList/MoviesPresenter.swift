@@ -1,5 +1,5 @@
 //
-//  File.swift
+//  MoviesPresenter.swift
 //
 //
 //  Created by Ernest Chechelski on 14/12/2023.
@@ -11,27 +11,49 @@ import Foundation
 final class MoviesPresenter {
   var onEvent: (MoviesListEvent) -> Void = { _ in }
 
-  var model: AnyPublisher<MoviesListModel, Never> {
+  
+  var isLoading: AnyPublisher<Bool, Never> {
+    isLoadingSubject.eraseToAnyPublisher()
+  }
+  
+  var searchSuggestions: AnyPublisher<[String], Never> {
+    searchSuggestionsSubject
+      .combineLatest(model, querySubject)
+      .map { suggestions, model, query in
+        if query.isEmpty {
+          return []
+        }
+        return Array(Set(suggestions.filter { suggestion in
+          let allMovies = Array(model.values).flatMap { $0 }
+          return allMovies.contains(where: { movie in
+            movie.value.title.contains(suggestion)
+          })
+        }))
+      }
+      .eraseToAnyPublisher()
+  }
+  
+  var model: AnyPublisher<Dictionary<Int,[Identifable<Movie>]>, Never> {
     modelSubject
-      .compactMap { $0 }
       .combineLatest(querySubject)
       .map { model, query in
-        let movies = query.isEmpty ? model.movies : model.movies.filter { movie in
-          movie.value.title.uppercased().contains(query.uppercased())
+        guard query.count > 2 else {
+          return model
         }
-
-        return .init(
-          isLoading: model.isLoading, movies: movies,
-          searchSuggestions: model.searchSuggestions
-        )
+        return model.mapValues { movies in
+          movies.filter { movie in
+            movie.value.title.uppercased().contains(query.uppercased())
+          }
+        }
       }
       .eraseToAnyPublisher()
   }
 
   private var page = 1
   private var cancellables = Set<AnyCancellable>()
-  private let modelSubject = CurrentValueSubject<MoviesListModel?, Never>(.none)
+  private let modelSubject = CurrentValueSubject<Dictionary<Int,[Identifable<Movie>]>, Never>([:])
   private let querySubject = CurrentValueSubject<String, Never>("")
+  private let isLoadingSubject = CurrentValueSubject<Bool, Never>(false)
   private let loadNextPageSubject = PassthroughSubject<Void, Never>()
   private let searchSuggestionsSubject = CurrentValueSubject<[String], Never>([])
   private let moviesRepository: MoviesListRepository
@@ -42,54 +64,21 @@ final class MoviesPresenter {
   }
 
   func load(isPullToRefresh: Bool = false) {
-    modelSubject.update {
-      $0?.isLoading = !isPullToRefresh
-    }
+    startLoading()
     moviesRepository
       .fetchMovies(page: 1)
       .receive(on: RunLoop.main)
-      .handleEvents(
-        receiveSubscription: { [weak self] _ in
-          self?.startLoading()
-        },
-        receiveCompletion: { [weak self] _ in
-          self?.stopLoading()
-        }
-      )
       .sink { completion in
         print(completion)
-      } receiveValue: { [weak self] movies in
-        self?.modelSubject.send(
-          .init(
-            movies: movies.uniqued,
-            searchSuggestions: self?.modelSubject.value?.searchSuggestions ?? []
-          )
-        )
+      } receiveValue: { [weak self, page] movies in
+        self?.append(movies: movies, page: page)
+        self?.stopLoading()
       }
       .store(in: &cancellables)
   }
 
   func loadNextPage() {
     loadNextPageSubject.send(())
-  }
-
-  func fetchNextPage() {
-    page += 1
-    moviesRepository
-      .fetchMovies(page: page)
-      .receive(on: RunLoop.main)
-      .sink { completion in
-        print(completion)
-      } receiveValue: { [weak self] movies in
-        self?.append(movies: movies)
-      }
-      .store(in: &cancellables)
-  }
-
-  func append(movies: [Movie]) {
-    modelSubject.update {
-      $0?.movies.append(contentsOf: movies.uniqued)
-    }
   }
 
   func markAsFavourite(movie: Movie) {
@@ -133,59 +122,53 @@ final class MoviesPresenter {
   }
 
   private func fetchSuggestions(query: String) {
-    guard !query.isEmpty else{
-      modelSubject.update {
-        $0?.searchSuggestions.removeAll()
-      }
-      return
-    }
-    
     guard query.count > 2 else{
       return
     }
     
+    startLoading()
     moviesRepository
       .fetchSearchSuggestions(text: query)
       .replaceError(with: [])
       .receive(on: RunLoop.main)
-      .handleEvents(
-        receiveSubscription: { [weak self] _ in
-          self?.startLoading()
-        },
-        receiveCompletion: { [weak self] _ in
-          self?.stopLoading()
-        }
-      )
       .sink(receiveValue: { [weak self] suggestions in
-        self?.modelSubject.update { model in
-          let movies = model?.movies ?? []
-          let suggestions = suggestions.map(\.text)
-          let validSuggestions = suggestions.filter({ text in
-            movies.contains(where: { movie in
-              text.contains(movie.value.title)
-            })
-          })
-          let uniquedSuggestions = Array(Set(validSuggestions))
-          model?.searchSuggestions = uniquedSuggestions
-        }
+        self?.searchSuggestionsSubject.send(suggestions.map { $0.text })
+        self?.stopLoading()
       })
       .store(in: &cancellables)
   }
 
-  private func startLoading() {
+  private func fetchNextPage() {
+    page += 1
+    startLoading()
+    moviesRepository
+      .fetchMovies(page: page)
+      .receive(on: RunLoop.main)
+      .sink { completion in
+        print(completion)
+      } receiveValue: { [weak self, page] movies in
+        self?.append(movies: movies, page: page)
+        self?.stopLoading()
+      }
+      .store(in: &cancellables)
+  }
+
+  private func append(movies: [Movie], page: Int) {
     modelSubject.update {
-      $0?.isLoading = true
+      $0[page] = movies.uniqued
     }
+  }
+
+  private func startLoading() {
+    isLoadingSubject.send(true)
   }
 
   private func stopLoading() {
-    modelSubject.update {
-      $0?.isLoading = false
-    }
+    isLoadingSubject.send(false)
   }
 }
 
-extension Collection {
+private extension Collection {
   var uniqued: [Identifable<Element>] {
     map { .init(value: $0, uuid: UUID()) }
   }

@@ -9,10 +9,14 @@ import Foundation
 
 struct MoviesListModel {
   var isLoading = false
-  var movies: [Identifable<Movie>]
+  var movies: Dictionary<Int,[Identifable<Movie>]>
   var searchSuggestions: [String]
 }
 
+struct Page<Value> {
+  var index: Int
+  var items: [Value]
+}
 
 struct Identifable<Value>: Hashable {
   static func == (lhs: Identifable<Value>, rhs: Identifable<Value>) -> Bool {

@@ -10,7 +10,7 @@ import UIKit
 
 final class MoviesViewController: UIViewController, ViewControllerRoutes {
   private var cancellables = Set<AnyCancellable>()
-  private var model: MoviesListModel?
+  private var model = Dictionary<Int,[Identifable<Movie>]>()
   private let refreshControl = UIRefreshControl()
   private let activityIndicatorView = with(UIActivityIndicatorView().layoutable()) {
     $0.hidesWhenStopped = true
@@ -39,8 +39,41 @@ final class MoviesViewController: UIViewController, ViewControllerRoutes {
   required init?(coder: NSCoder) {
     fatalError("init(coder:) has not been implemented")
   }
+  
   override func viewDidLoad() {
+    presenter.isLoading
+      .receive(on: RunLoop.main)
+      .sink { [weak self] in
+      if $0 {
+        self?.activityIndicatorView.startAnimating()
+      } else {
+        self?.activityIndicatorView.stopAnimating()
+      }
+    }
+    .store(in: &cancellables)
     
+    presenter.searchSuggestions
+      .receive(on: RunLoop.main)
+      .sink { [weak self] in
+        if #available(iOS 16.0, *) {
+          self?.searchController.searchSuggestions = $0.map {
+            UISearchSuggestionItem(localizedSuggestion: $0)
+          }
+        }
+    }
+    .store(in: &cancellables)
+    
+    presenter.model
+      .receive(on: RunLoop.main)
+      .replaceError(with: [:])
+      .sink { completion in
+        print(completion)
+      } receiveValue: { [weak self] model in
+        self?.model = model
+        self?.rootTableView.reloadData()
+      }
+      .store(in: &cancellables)
+    loadContent()
   }
 
   override public func loadView() {
@@ -71,37 +104,8 @@ final class MoviesViewController: UIViewController, ViewControllerRoutes {
     ])
   }
 
-  override public func viewWillAppear(_ animated: Bool) {
-    cancellables.removeAll()
-    presenter.model
-      .replaceError(with: .init(movies: [], searchSuggestions: []))
-      .sink { completion in
-        print(completion)
-      } receiveValue: { [weak self] model in
-        self?.model = model
-        self?.rootTableView.reloadData()
-        if #available(iOS 16.0, *) {
-          self?.searchController.searchSuggestions = model.searchSuggestions.map {
-            UISearchSuggestionItem(localizedSuggestion: $0)
-          }
-        }
-        
-        if model.isLoading {
-          self?.activityIndicatorView.startAnimating()
-        } else {
-          self?.refreshControl.endRefreshing()
-          self?.activityIndicatorView.stopAnimating()
-        }
-      }
-      .store(in: &cancellables)
-    loadContent()
-  }
-
-  override public func viewDidDisappear(_ animated: Bool) {
-    cancellables.removeAll()
-  }
-
   @objc private func refresh(_ sender: AnyObject) {
+    refreshControl.endRefreshing()
     presenter.load(isPullToRefresh: true)
   }
 
@@ -122,18 +126,22 @@ extension MoviesViewController: UISearchResultsUpdating {
     searchController.searchBar.text = searchSuggestion.localizedSuggestion
     searchController.searchSuggestions?.removeAll()
     searchController.dismiss(animated: true)
-//    presenter.updateQuery(text: searchSuggestion.localizedSuggestion)
+    presenter.updateQuery(text: searchSuggestion.localizedSuggestion)
   }
 }
 
 extension MoviesViewController: UITableViewDataSource {
+  
+  func numberOfSections(in tableView: UITableView) -> Int {
+    model.count
+  }
   public func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-    model?.movies.count ?? 0
+    model[section + 1]?.count ?? 0
   }
 
   public func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
     let cell = tableView.dequeueReusableCell(withIdentifier: "identifier") as? MovieCell
-    if let movie = model?.movies[indexPath.row].value {
+    if let movie = model[indexPath.section + 1]?[indexPath.row].value {
       cell?.fill(
         with: .init(
           title: movie.title,
@@ -157,7 +165,7 @@ extension MoviesViewController: UITableViewDataSource {
   }
   
   func tableView(_ tableView: UITableView, willDisplay cell: UITableViewCell, forRowAt indexPath: IndexPath) {
-    guard indexPath.row + 1 == model?.movies.count else {
+    guard indexPath.row + 1 == model[indexPath.section + 1]?.count else {
       return
     }
     presenter.loadNextPage()
@@ -166,7 +174,7 @@ extension MoviesViewController: UITableViewDataSource {
 
 extension MoviesViewController: UITableViewDelegate {
   public func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-    guard let movie = model?.movies[indexPath.row] else {
+    guard let movie = model[indexPath.section]?[indexPath.row] else {
       return
     }
     presenter.movieSelected(movie: movie.value)
