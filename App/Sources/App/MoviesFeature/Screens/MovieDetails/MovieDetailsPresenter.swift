@@ -27,10 +27,12 @@ final class MovieDetailsPresenter {
     modelSubject.send(
       .init(
         titleText: movie.title,
-        releaseDateText: "\(movie.releseDate)",
-        gradeText: "\(movie.grade)",
+        releaseDateText: Constants.dateFormatter.string(from: movie.releseDate),
+        gradeText: "Grade: " + (
+          Constants.numberFormatter
+            .string(from: NSNumber(floatLiteral: Double(movie.grade))) ?? "N/A"
+        ),
         descriptionText: movie.overview,
-        isLoading: true,
         isFavourite: movie.isFavourite
       )
     )
@@ -68,5 +70,16 @@ final class MovieDetailsPresenter {
     modelSubject.update {
       $0?.image = uiImage
     }
+  }
+}
+
+private enum Constants {
+  static let dateFormatter = with(DateFormatter()) {
+    $0.dateFormat = "yyyy.mm.dd"
+  }
+  
+  static let numberFormatter = with(NumberFormatter()) {
+    $0.numberStyle = .decimal
+    $0.maximumFractionDigits = 1
   }
 }

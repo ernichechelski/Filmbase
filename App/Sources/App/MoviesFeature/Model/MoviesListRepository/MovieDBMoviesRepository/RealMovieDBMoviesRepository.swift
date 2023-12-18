@@ -43,8 +43,14 @@ struct RealMovieDBMoviesRepository: MovieDBMoviesRepository {
     RequestBuilderFactory
       .create(Movies.GetMovieSearchSuggestionsMovies.self)
       .request(.init())
-      .headers(.init(authorisation: "Authorization: Bearer \(Constants.apiKey)"))
-      .queryItems(.init(query: text, page: 1, language: "pl"))
+      .headers(.init(token: Constants.apiKey))
+      .queryItems(
+        .init(
+          query: text,
+          page: 1,
+          language: Constants.locale
+        )
+      )
       .perform(with: URLSession.shared)
       .map {
         $0.data.results.map {
@@ -58,8 +64,13 @@ struct RealMovieDBMoviesRepository: MovieDBMoviesRepository {
     RequestBuilderFactory
       .create(Movies.GetMovies.self)
       .request(.init())
-      .headers(.init(authorisation: "Authorization: Bearer \(Constants.apiKey)"))
-      .queryItems(.init(page: page, language: "pl"))
+      .headers(.init(token: Constants.apiKey))
+      .queryItems(
+        .init(
+          page: page,
+          language: Constants.locale
+        )
+      )
       .perform(with: URLSession.shared)
       .map { $0.data }
       .eraseToAnyPublisher()
@@ -69,5 +80,6 @@ struct RealMovieDBMoviesRepository: MovieDBMoviesRepository {
 }
 
 private enum Constants {
+  static let locale = "en"
   static let apiKey = "eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiJlOTdiMGQ0YWQ3MzZjZWI2NzEyYjk4MzNiYmFjMDQ3MCIsInN1YiI6IjVhMWZkMjAxYzNhMzY4MGI4ODA4Yzg0MCIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.YiTcXE0dy8qu6E_7JsrhbEhSXPcqmP-PftTD7wl5lMk"
 }

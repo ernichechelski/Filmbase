@@ -9,13 +9,16 @@ import Combine
 import Foundation
 
 final class MoviesPresenter {
+  
+  /// All events triggered internaly but handled externally.
   var onEvent: (MoviesListEvent) -> Void = { _ in }
 
-  
+  /// Publisher indicates if the presenter loading something.
   var isLoading: AnyPublisher<Bool, Never> {
     isLoadingSubject.eraseToAnyPublisher()
   }
   
+  /// Publisher with all useful search suggestions.
   var searchSuggestions: AnyPublisher<[String], Never> {
     searchSuggestionsSubject
       .combineLatest(model, querySubject)
@@ -33,6 +36,7 @@ final class MoviesPresenter {
       .eraseToAnyPublisher()
   }
   
+  /// Publisher with all movies splited into sections where key is section index.
   var model: AnyPublisher<Dictionary<Int,[Identifable<Movie>]>, Never> {
     modelSubject
       .combineLatest(querySubject)
@@ -63,24 +67,28 @@ final class MoviesPresenter {
     setup()
   }
 
-  func load(isPullToRefresh: Bool = false) {
+  /// Loads initial data.
+  func load() {
+    page = 1
     startLoading()
     moviesRepository
-      .fetchMovies(page: 1)
+      .fetchMovies(page: page)
+      .replaceError(with: [])
       .receive(on: RunLoop.main)
-      .sink { completion in
-        print(completion)
-      } receiveValue: { [weak self, page] movies in
+      .sink(receiveValue: { [weak self, page] movies in
+        self?.modelSubject.send([:])
         self?.append(movies: movies, page: page)
         self?.stopLoading()
-      }
+      })
       .store(in: &cancellables)
   }
 
+  /// Loads the next page of movies.
   func loadNextPage() {
     loadNextPageSubject.send(())
   }
 
+  /// Marks the movie as favourite.
   func markAsFavourite(movie: Movie) {
     moviesRepository
       .markAsFavourite(movie: movie)
@@ -89,6 +97,7 @@ final class MoviesPresenter {
       .store(in: &cancellables)
   }
 
+  /// Unmarks the movie as favourite.
   func unmarkAsFavourite(movie: Movie) {
     moviesRepository
       .unmarkAsFavourite(movie: movie)
@@ -97,10 +106,12 @@ final class MoviesPresenter {
       .store(in: &cancellables)
   }
 
+  /// Updates search query which filters movies.
   func updateQuery(text: String?) {
     querySubject.send(text ?? "")
   }
 
+  /// Triggered when the user selects movie.
   func movieSelected(movie: Movie) {
     onEvent(.requestedShowMovieDetails(movie))
   }

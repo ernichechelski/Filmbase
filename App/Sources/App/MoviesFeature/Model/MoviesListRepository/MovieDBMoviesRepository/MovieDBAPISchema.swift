@@ -105,30 +105,10 @@ enum Movies {
         }
         
         struct Movie: Codable {
-          let adult: Bool
-          let backdropPath: String?
-          let genreIDS: [Int]
-          let id: Int
-          let originalLanguage: String
-          let originalTitle, overview: String
-          let popularity: Double
-          let releaseDate, title: String
-          let video: Bool
-          let voteAverage: Double
-          let voteCount: Int
+          let originalTitle: String
 
           enum CodingKeys: String, CodingKey {
-            case adult
-            case backdropPath = "backdrop_path"
-            case genreIDS = "genre_ids"
-            case id
-            case originalLanguage = "original_language"
             case originalTitle = "original_title"
-            case overview, popularity
-            case releaseDate = "release_date"
-            case title, video
-            case voteAverage = "vote_average"
-            case voteCount = "vote_count"
           }
         }
       }
@@ -151,4 +131,10 @@ extension MoviesRequest where Self: PerformerRequest {
 enum MoviesDBConstants {
   static let baseApiPath = "https://api.themoviedb.org"
   static let basePostersPath = "https://image.tmdb.org/t/p/original"
+}
+
+extension Movies.GetMovies.Request.Headers {
+  init(token: String) {
+    self.init(authorisation: "Authorization: Bearer \(token)")
+  }
 }

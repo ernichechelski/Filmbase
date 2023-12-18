@@ -7,6 +7,7 @@
 
 import Combine
 import Foundation
+import UIKit
 
 final class RealMoviesListRepository: MoviesListRepository {
   private enum Failure: Error {
@@ -20,13 +21,23 @@ final class RealMoviesListRepository: MoviesListRepository {
   func fetchMovies(page: Int) -> AnyPublisher<[Movie], Error> {
     moviesRepository
       .fetchMovies(page: page)
-      .map { response in
+      .map { [weak self] response in
+        guard let self else {
+          return
+        }
         self.modelSubject.update {
           $0[page] = response
         }
       }
-      .flatMap { _ in
-        self.fetchFromCache(page: page)
+      .flatMap { [weak self, page] _ in
+        guard let self else {
+          return Fail<[Movie], RealMoviesListRepository.Failure>(
+            error: Failure.wrongDateFormat
+          )
+          .mapError { $0 as Error }
+          .eraseToAnyPublisher()
+        }
+        return self.fetchFromCache(page: page)
       }
       .eraseToAnyPublisher()
   }
@@ -47,12 +58,18 @@ final class RealMoviesListRepository: MoviesListRepository {
     modelSubject.compactMap { $0[page] }.eraseToAnyPublisher()
       .setFailureType(to: Error.self)
       .combineLatest(favouiritesRepository.fetchIDs())
-      .tryMap { movies, favouiritesIds in
-        try movies.results.map {
+      .tryMap { [weak self] movies, favouiritesIds in
+        guard let self else {
+          return []
+        }
+        return try movies.results.map {
           Movie(
             id: $0.id,
             title: $0.originalTitle,
-            image: self.moviesRepository.fetchImage(path: $0.posterPath ?? $0.backdropPath ?? ""),
+            image: self.moviesRepository
+              .fetchImage(
+                path: $0.posterPath ?? $0.backdropPath ?? ""
+              ) ,
             releseDate: try Constants.moviesDBDateFormatter.date(
               from: $0.releaseDate
             ).throwing(error: Failure.wrongDateFormat),

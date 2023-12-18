@@ -10,7 +10,7 @@ import UIKit
 
 final class MoviesViewController: UIViewController, ViewControllerRoutes {
   private var cancellables = Set<AnyCancellable>()
-  private var model = Dictionary<Int,[Identifable<Movie>]>()
+  private var model = Dictionary<Int, [Identifable<Movie>]>()
   private let refreshControl = UIRefreshControl()
   private let activityIndicatorView = with(UIActivityIndicatorView().layoutable()) {
     $0.hidesWhenStopped = true
@@ -19,15 +19,13 @@ final class MoviesViewController: UIViewController, ViewControllerRoutes {
   private let rootTableView = with(UITableView().layoutable()) {
     $0.rowHeight = UITableView.automaticDimension
   }
-  
+
   private lazy var searchController = with(UISearchController(searchResultsController: nil)) {
     $0.searchResultsUpdater = self
     $0.obscuresBackgroundDuringPresentation = false
-//    $0.hidesNavigationBarDuringPresentation = false
     $0.searchBar.delegate = self
     $0.searchBar.placeholder = "Enter the movie name"
   }
- 
 
   private let presenter: MoviesPresenter
 
@@ -39,45 +37,17 @@ final class MoviesViewController: UIViewController, ViewControllerRoutes {
   required init?(coder: NSCoder) {
     fatalError("init(coder:) has not been implemented")
   }
-  
+
   override func viewDidLoad() {
-    presenter.isLoading
-      .receive(on: RunLoop.main)
-      .sink { [weak self] in
-      if $0 {
-        self?.activityIndicatorView.startAnimating()
-      } else {
-        self?.activityIndicatorView.stopAnimating()
-      }
-    }
-    .store(in: &cancellables)
-    
-    presenter.searchSuggestions
-      .receive(on: RunLoop.main)
-      .sink { [weak self] in
-        if #available(iOS 16.0, *) {
-          self?.searchController.searchSuggestions = $0.map {
-            UISearchSuggestionItem(localizedSuggestion: $0)
-          }
-        }
-    }
-    .store(in: &cancellables)
-    
-    presenter.model
-      .receive(on: RunLoop.main)
-      .replaceError(with: [:])
-      .sink { completion in
-        print(completion)
-      } receiveValue: { [weak self] model in
-        self?.model = model
-        self?.rootTableView.reloadData()
-      }
-      .store(in: &cancellables)
-    loadContent()
+    setupBehaviour()
   }
 
   override public func loadView() {
     super.loadView()
+    setupView()
+  }
+
+  private func setupView() {
     navigationItem.title = "Movies"
     navigationItem.searchController = searchController
     refreshControl.attributedTitle = NSAttributedString(string: "Pull to refresh")
@@ -96,17 +66,50 @@ final class MoviesViewController: UIViewController, ViewControllerRoutes {
       rootTableView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
       rootTableView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
       rootTableView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
-    ])
-
-    NSLayoutConstraint.activate([
       activityIndicatorView.centerXAnchor.constraint(equalTo: view.centerXAnchor),
       activityIndicatorView.centerYAnchor.constraint(equalTo: view.centerYAnchor),
     ])
   }
 
+  private func setupBehaviour() {
+    presenter.isLoading
+      .receive(on: RunLoop.main)
+      .sink { [weak self] in
+        if $0 {
+          self?.activityIndicatorView.startAnimating()
+        } else {
+          self?.activityIndicatorView.stopAnimating()
+        }
+      }
+      .store(in: &cancellables)
+
+    presenter.searchSuggestions
+      .receive(on: RunLoop.main)
+      .sink { [weak self] in
+        if #available(iOS 16.0, *) {
+          self?.searchController.searchSuggestions = $0.map {
+            UISearchSuggestionItem(localizedSuggestion: $0)
+          }
+        }
+      }
+      .store(in: &cancellables)
+
+    presenter.model
+      .receive(on: RunLoop.main)
+      .replaceError(with: [:])
+      .sink { completion in
+        print(completion)
+      } receiveValue: { [weak self] model in
+        self?.model = model
+        self?.rootTableView.reloadData()
+      }
+      .store(in: &cancellables)
+    loadContent()
+  }
+
   @objc private func refresh(_ sender: AnyObject) {
     refreshControl.endRefreshing()
-    presenter.load(isPullToRefresh: true)
+    presenter.load()
   }
 
   private func loadContent() {
@@ -115,12 +118,10 @@ final class MoviesViewController: UIViewController, ViewControllerRoutes {
 }
 
 extension MoviesViewController: UISearchResultsUpdating {
-  
-  
   func updateSearchResults(for searchController: UISearchController) {
     presenter.updateQuery(text: searchController.searchBar.text)
   }
-  
+
   @available(iOS 16.0, *)
   func updateSearchResults(for searchController: UISearchController, selecting searchSuggestion: UISearchSuggestion) {
     searchController.searchBar.text = searchSuggestion.localizedSuggestion
@@ -131,10 +132,10 @@ extension MoviesViewController: UISearchResultsUpdating {
 }
 
 extension MoviesViewController: UITableViewDataSource {
-  
   func numberOfSections(in tableView: UITableView) -> Int {
     model.count
   }
+
   public func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
     model[section + 1]?.count ?? 0
   }
@@ -161,9 +162,9 @@ extension MoviesViewController: UITableViewDataSource {
         )
       )
     }
-    return cell!
+    return cell ?? UITableViewCell()
   }
-  
+
   func tableView(_ tableView: UITableView, willDisplay cell: UITableViewCell, forRowAt indexPath: IndexPath) {
     guard indexPath.row + 1 == model[indexPath.section + 1]?.count else {
       return
@@ -182,20 +183,13 @@ extension MoviesViewController: UITableViewDelegate {
 }
 
 extension MoviesViewController: UISearchBarDelegate {
-  func searchBarShouldEndEditing(_ searchBar: UISearchBar) -> Bool  {
+  func searchBarShouldEndEditing(_ searchBar: UISearchBar) -> Bool {
     searchController.dismiss(animated: true)
     presenter.updateQuery(text: searchBar.text)
     return true
   }
-  
+
   func searchBarCancelButtonClicked(_ searchBar: UISearchBar) {
     searchController.dismiss(animated: true)
-  }
-}
-
-extension UIView {
-  func layoutable() -> Self {
-    translatesAutoresizingMaskIntoConstraints = false
-    return self
   }
 }

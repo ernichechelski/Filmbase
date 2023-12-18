@@ -14,7 +14,6 @@ final class MovieDetailsViewController: UIViewController, ViewControllerRoutes {
     var releaseDateText: String
     var gradeText: String
     var descriptionText: String
-    var isLoading: Bool
     var isFavourite: Bool
     var image: UIImage?
   }
@@ -43,29 +42,29 @@ final class MovieDetailsViewController: UIViewController, ViewControllerRoutes {
   private let rootStackView = with(UIStackView().layoutable()) {
     $0.axis = .vertical
     $0.distribution = .equalSpacing
-    $0.alignment = .leading
+    $0.alignment = .center
     $0.spacing = 10
     $0.isLayoutMarginsRelativeArrangement = true
-    $0.directionalLayoutMargins = .init(top: 10, leading: 10, bottom: 10, trailing: 10)
+    $0.layoutMargins = .init(top: 0, left: 10, bottom: 0, right: 10)
   }
 
   private let titleLabel = with(UILabel()) {
-    $0.numberOfLines = 10
+    $0.numberOfLines = 0
     $0.font = .preferredFont(forTextStyle: .title1)
   }
 
   private let releaseDateLabel = with(UILabel()) {
-    $0.numberOfLines = 10
+    $0.numberOfLines = 0
     $0.font = .preferredFont(forTextStyle: .subheadline)
   }
 
   private let gradeLabel = with(UILabel()) {
-    $0.numberOfLines = 10
+    $0.numberOfLines = 0
     $0.font = .preferredFont(forTextStyle: .caption1)
   }
 
   private let descriptionLabel = with(UILabel()) {
-    $0.numberOfLines = 10
+    $0.numberOfLines = 0
     $0.font = .preferredFont(forTextStyle: .body)
   }
   
@@ -131,8 +130,8 @@ final class MovieDetailsViewController: UIViewController, ViewControllerRoutes {
     ])
     
     NSLayoutConstraint.activate([
-      posterImageView.widthAnchor.constraint(equalTo: rootStackView.widthAnchor),
-      posterImageView.heightAnchor.constraint(equalToConstant: 200)
+      posterImageView.widthAnchor.constraint(lessThanOrEqualTo: rootStackView.widthAnchor),
+      posterImageView.heightAnchor.constraint(equalToConstant: 500)
     ])
   }
   

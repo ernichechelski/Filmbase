@@ -14,14 +14,21 @@ final class ScreensFactory {
   private let moviesRepository: MoviesListRepository = RealMoviesListRepository()
   
   func createMoviesList(onEvent: @escaping (MoviesListEvent) -> Void) -> ViewControllerRoutes {
-    let presenter = MoviesPresenter.init(moviesRepository: moviesRepository)
-    let vc = MoviesViewController(presenter: presenter)
+    let presenter = MoviesPresenter(
+      moviesRepository: moviesRepository
+    )
+    let vc = MoviesViewController(
+      presenter: presenter
+    )
     presenter.onEvent = onEvent
     return vc
   }
   
   func createMovieDetails(movie: Movie) -> ViewControllerRoutes {
-    let presenter = MovieDetailsPresenter(movie: movie, moviesRepository: moviesRepository)
+    let presenter = MovieDetailsPresenter(
+      movie: movie,
+      moviesRepository: moviesRepository
+    )
     let vc = MovieDetailsViewController(presenter: presenter)
     return vc
   }
